@@ -1,8 +1,16 @@
 package com.aim.itssns.domain.entity;
 
+import lombok.*;
+
 import javax.persistence.*;
 
+
 @Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RecruitKeyword {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "recruit_keyword_id")

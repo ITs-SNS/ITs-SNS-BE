@@ -1,16 +1,19 @@
 package com.aim.itssns.domain.entity;
 
 import com.sun.istack.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Keyword {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = "keyword_id")

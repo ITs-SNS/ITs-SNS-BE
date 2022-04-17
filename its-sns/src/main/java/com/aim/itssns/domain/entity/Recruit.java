@@ -2,17 +2,20 @@ package com.aim.itssns.domain.entity;
 
 
 import com.sun.istack.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Recruit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)  @Id
     @Column(name = "recruit_id")

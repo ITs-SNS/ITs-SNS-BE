@@ -1,8 +1,15 @@
 package com.aim.itssns.domain.entity;
 
+import lombok.*;
+
 import javax.persistence.*;
 
 @Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class NewsKeyword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

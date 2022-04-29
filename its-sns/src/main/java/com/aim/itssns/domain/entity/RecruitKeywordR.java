@@ -12,18 +12,17 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserKeyword {
+public class RecruitKeywordR {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_keyword_id")
-    private Integer userKeywordId;
-
+    @Column(name = "recruit_keyword_r_id")
+    private Integer recruitKeywordRId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "recruit_id")
+    private Recruit recruit;
 
     @ManyToOne
     @JoinColumn(name ="keyword_id")
-    private Keyword keyword;
+    private RecruitKeyword recruitKeyword;
 }

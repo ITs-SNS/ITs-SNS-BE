@@ -31,5 +31,5 @@ public class News {
     private String newsUrl;
 
     @OneToMany(mappedBy = "news")
-    private List<NewsKeyword> newsKeywords = new ArrayList<>();
+    private List<NewsKeywordR> newsKeywords = new ArrayList<>();
 }

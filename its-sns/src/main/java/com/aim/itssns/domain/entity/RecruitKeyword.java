@@ -3,6 +3,8 @@ package com.aim.itssns.domain.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -12,17 +14,15 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecruitKeyword {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "recruit_keyword_id")
-    private Integer recruitKeywordId;
+    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name = "keyword_id")
+    private Integer keywordId;
+    @Column(unique = true,nullable = false)
+    private String keywordContent;
 
+    @OneToMany(mappedBy = "recruitKeyword")
+    private List<RecruitKeywordR> recruitKeywordList = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "recruit_id")
-    private Recruit recruit;
-
-    @ManyToOne
-    @JoinColumn(name ="keyword_id")
-    private Keyword keyword;
-
+    @OneToMany(mappedBy = "recruitKeyword")
+    private List<UserRecruitKeywordR> userRecruitKeywordList = new ArrayList<>();
 }

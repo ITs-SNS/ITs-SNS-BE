@@ -29,8 +29,8 @@ public class NewsCrawler {
 
     //10800000L
     //from 시간 이후에 작성된 뉴스를 크롤링해오는 메소드
-    @Async
-    @Scheduled(fixedRate = 60000L, initialDelay = 0L)
+    //@Async
+    //@Scheduled(fixedRate = 60000L, initialDelay = 0L)
     public void getNewsListFromDaum() {
 
         //다음의 IT 뉴스 리스트를 받아올 수 있는 기본 주소

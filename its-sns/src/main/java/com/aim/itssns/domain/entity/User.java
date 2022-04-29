@@ -1,7 +1,6 @@
 package com.aim.itssns.domain.entity;
 
 
-import com.sun.istack.NotNull;
 import lombok.*;
 
 import javax.persistence.*;
@@ -27,5 +26,9 @@ public class User {
     private String userName;
 
     @OneToMany(mappedBy = "user")
-    private List<UserKeyword> userKeywordList = new ArrayList<>();
+    private List<UserNewsKeywordR> newsKeywordList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<UserRecruitKeywordR> recruitKeywordList = new ArrayList<>();
+
 }

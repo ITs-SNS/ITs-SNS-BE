@@ -3,6 +3,9 @@ package com.aim.itssns.domain.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -11,16 +14,15 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewsKeyword {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "news_keyword_id")
-    private Integer newsKeywordId;
+    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name = "keyword_id")
+    private Integer keywordId;
+    @Column(unique = true,nullable = false)
+    private String keywordContent;
 
-    @ManyToOne
-    @JoinColumn(name="news_id")
-    private News news;
+    @OneToMany(mappedBy = "newsKeyword")
+    private List<NewsKeywordR> newsKeywordList = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name="keyword_id")
-    private Keyword keyword;
+    @OneToMany(mappedBy = "newsKeyword")
+    private List<UserNewsKeywordR> userNewsKeywordList = new ArrayList<>();
 }

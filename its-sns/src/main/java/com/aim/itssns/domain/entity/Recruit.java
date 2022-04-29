@@ -32,5 +32,5 @@ public class Recruit {
     private String recruitTitle;
 
     @OneToMany(mappedBy = "recruit")
-    private List<RecruitKeyword> recruitKeywordList = new ArrayList<>();
+    private List<RecruitKeywordR> recruitKeywordList = new ArrayList<>();
 }

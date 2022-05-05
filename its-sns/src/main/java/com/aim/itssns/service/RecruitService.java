@@ -20,13 +20,11 @@ public class RecruitService {
     private final RecruitRepository recruitRepository;
 
     //news Repository에서 시간 가져옴, 만약 디비에 뉴스정보가 존재하지 않으면 2022/4/16일을 lastCrawlTime으로 함.
-    public LocalDateTime findLastRecruitCrawlTime()
+    public String findLastRecruitUrl()
     {
-        Recruit recruit = recruitRepository.findFirstByOrderByRecruitUploadDateDesc();
-        if(recruit == null)
-            return LocalDateTime.of(2022, 4, 28, 0,0,0);
-
-        return recruit.getRecruitUploadDate();
+        Recruit recruit = recruitRepository.findLastByOrderByRecruitId();
+        if(recruit == null) return "";
+        return recruit.getRecruitUrl();
     }
 
     public void saveRecruitCrawledList(List<RecruitCrawledDto> recruitCrawledDtoList)

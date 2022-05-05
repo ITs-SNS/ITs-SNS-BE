@@ -29,8 +29,6 @@ public class Recruit {
     @Column(nullable = false)
     private LocalDateTime recruitEndDate;
     @Column(nullable = false)
-    private LocalDateTime recruitUploadDate;
-    @Column(nullable = false)
     private String recruitTitle;
 
     @OneToMany(mappedBy = "recruit")

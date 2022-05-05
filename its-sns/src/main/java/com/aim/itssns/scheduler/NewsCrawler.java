@@ -29,8 +29,8 @@ public class NewsCrawler {
 
     //10800000L
     //from 시간 이후에 작성된 뉴스를 크롤링해오는 메소드
-    //@Async
-    //@Scheduled(fixedRate = 60000L, initialDelay = 0L)
+    @Async
+    @Scheduled(fixedRate = 60000L, initialDelay = 0L)
     public void getNewsListFromDaum() {
 
         //다음의 IT 뉴스 리스트를 받아올 수 있는 기본 주소
@@ -83,13 +83,9 @@ public class NewsCrawler {
 
                     //만약 해당 뉴스가 lastCrawlTime 같거나 이전의 뉴스이면 더이상 크롤링 할 필요가 없
                     if(newsUploadDate.isBefore(lastCrawlTime) || newsUploadDate.isEqual(lastCrawlTime)) {
-
                         crawlEndFlag = true;
                         break;
                     }
-
-
-
                     newsCrawlDtoList.add(news);
                     System.out.println(news);
                     //getNewsFromDaum(news);

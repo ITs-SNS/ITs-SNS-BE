@@ -18,7 +18,6 @@ public class RecruitCrawledDto {
     String recruitUrl;
     LocalDateTime recruitStartDate;
     LocalDateTime recruitEndDate;
-    LocalDateTime recruitUploadDate;
     String recruitTitle;
 
     public Recruit toEntity(){
@@ -27,7 +26,6 @@ public class RecruitCrawledDto {
                 .recruitUrl(recruitUrl)
                 .recruitStartDate(LocalDateTime.now())
                 .recruitEndDate(LocalDateTime.now())
-                .recruitUploadDate(recruitUploadDate)
                 .recruitTitle("가짜")
                 .build();
     }

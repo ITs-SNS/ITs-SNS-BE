@@ -6,7 +6,7 @@
 ##### 기능: 뉴스 트렌드 및 요약 제공, 키워드별 최신 채용 정보 제공을 위한 API
 
 ## 데이터 베이스 스키마
-  ![Untitled](https://user-images.githubusercontent.com/64076242/161967704-2cdae502-77f2-414a-93c3-e4b3f9674725.png)
+  <img width="886" alt="ERD" src="https://user-images.githubusercontent.com/64076242/166926720-5a51b9f2-80d1-4458-a06c-c211b7191e25.png">
 
 ## Entity
 > ##### USER

@@ -11,8 +11,10 @@
 ## Entity
 > ##### USER
 > ##### NEWS
-> ##### KEYWORD
 > ##### RECRUIT
-> ##### USER_SUBSCRIBE
 > ##### NEWS_KEYWORD
 > ##### RECRUIT_KEYWORD
+> ##### NEWS_KEYWORDR
+> ##### RECRUIT_KEYWORDR
+> ##### USER_NEWS_KEYWORDR
+> ##### USER_RECRUIT_KEYWORDR

@@ -1,5 +1,6 @@
 package com.aim.itssns.scheduler;
 
+import com.aim.itssns.domain.URLInfo;
 import com.aim.itssns.domain.dto.NewsCrawledDto;
 import com.aim.itssns.domain.dto.RecruitCrawledDto;
 import com.aim.itssns.service.NewsService;
@@ -9,6 +10,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,11 +29,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecruitCrawler {
     private final RecruitService recruitService;
-
-    //@Async
-    //@Scheduled(fixedRate = 60000L, initialDelay = 0L)
+    private WebDriver driver;
+   // @Async
+   // @Scheduled(fixedRate = 180000L, initialDelay = 0L)
     public void getRecruitListFromSaramin()
     {
+        System.setProperty("webdriver.chrome.driver", "/Users/dugunhee/ITs-SNS-BE/chromedriver");
+        //크롬 드라이버 셋팅 (드라이버 설치한 경로 입력)
+        driver = new ChromeDriver();
         String recruitListUrl;
         String recruitListUrlQuery;
         //마지막에 크롤링한 recruit url
@@ -45,8 +52,6 @@ public class RecruitCrawler {
 
 
         //iniatialization
-        recruitListUrl = "https://www.saramin.co.kr/zf_user/jobs/list/job-category";
-        recruitListUrlQuery = "&cat_mcls=2&search_optional_item=n&search_done=y&panel_count=y&sort=RD&is_param=1&isSearchResultEmpty=1&isSectionHome=0&searchParamCount=1&tab_type=all&cat_nm%5B2%5D=IT%EA%B0%9C%EB%B0%9C%C2%B7%EB%8D%B0%EC%9D%B4%ED%84%B0+%EC%A0%84%EC%B2%B4&recruit_kind=recruit&quick_apply=n&isAjaxRequest=0&page_count=50&type=job-category#searchTitle";
         lastCrawlUrl = recruitService.findLastRecruitUrl();
 
         crawlPage = 1L;
@@ -56,7 +61,7 @@ public class RecruitCrawler {
             while(true) {
                 //crawlPage에 해당하는 뉴스들의 주소, 업로드 시간을 추출
                 String crawlDateStr = crawlDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                Document doc = Jsoup.connect(recruitListUrl + "?page=" + crawlPage + recruitListUrlQuery).timeout(0).maxBodySize(1024*1024*3).get();
+                Document doc = Jsoup.connect(URLInfo.recruitListUrl + "?page=" + crawlPage + URLInfo.recruitListUrlQuery).timeout(0).maxBodySize(1024*1024*3).get();
                 Elements recruitElements = doc
                         .select("#sri_section")
                         .select("#sri_wrap").select("#content")
@@ -67,7 +72,7 @@ public class RecruitCrawler {
 
                 for (Element recruitElement : recruitElements) {
                     //뉴스 각각의 주소를 추출
-                    String recruitUrl = "https://www.saramin.co.kr"+recruitElement.select(".job_tit")
+                    String recruitUrl = URLInfo.saraminUrl+recruitElement.select(".job_tit")
                             .select(".str_tit").attr("href");
 
                     RecruitCrawledDto recruit = RecruitCrawledDto.builder()
@@ -79,8 +84,8 @@ public class RecruitCrawler {
                         break;
                     }
                     recruitCrawlDtoList.addFirst(recruit);
-                    //System.out.println(recruit);
-                    //getNewsFromDaum(news);
+                    //System.out.println(recruitUrl);
+                    getRecruitFromSaramin(recruit);
                 }
                 if(crawlEndFlag)
                     break;
@@ -106,21 +111,54 @@ public class RecruitCrawler {
                 crawlPage++;
                 if(crawlPage == 30) break;
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             System.out.println("recruit 목록을 가져오는데 실패하였습니다.");
             recruitCrawlDtoList = new LinkedList<>();
         }
         System.out.println(recruitCrawlDtoList.size());
         recruitService.saveRecruitCrawledList(recruitCrawlDtoList);
+        driver.close();	//탭 닫기
+        driver.quit();	//브라우저 닫기
     }
-    public void getRecruitFromSaramin(RecruitCrawledDto recruitCrawledDto) throws IOException {
+    public void getRecruitFromSaramin(RecruitCrawledDto recruitCrawledDto) throws IOException, InterruptedException {
+        String recruitUrl = recruitCrawledDto.getRecruitUrl();
+        System.out.println("recruitUrl = " + recruitUrl);
+        driver.get(recruitUrl);
+        Thread.sleep(1000);
 
-        Document doc = Jsoup.connect(recruitCrawledDto.getRecruitUrl()).get();
-        Element recruitElement = doc.select("").first();
-
-//        recruitCrawledDto.setRecruitCompany();
-//        recruitCrawledDto.setRecruitStartDate();
-//        recruitCrawledDto.setRecruitEndDate();
-//        recruitCrawledDto.setRecruitTitle();
+        recruitCrawledDto.setRecruitCompany(driver.findElement(By.className("company")).getText());
+        System.out.println(recruitCrawledDto.getRecruitCompany());
+        String recruitStartDate=null;
+        String recruitEndDate=null;
+        Boolean noElementFlag = false;
+        try {
+            recruitStartDate = driver.findElement(By.className("info_period")).findElements(By.tagName("dd")).get(0).getText();
+        }catch(Exception e) {
+            recruitStartDate = null;
+            noElementFlag = true;
+            System.out.println("해당공고는 [공고 사전 확인 서비스] 진행 중입니다.");
+            recruitCrawledDto.setRecruitStartDate(null);
+            recruitCrawledDto.setRecruitEndDate(null);
+            recruitCrawledDto.setRecruitTitle("해당공고는 [공고 사전 확인 서비스] 진행 중입니다.");
+        }
+        if(noElementFlag == false) {
+            if (driver.findElement(By.className("info_period")).findElements(By.tagName("dd")).size() == 1)
+                recruitEndDate = "";
+            else
+                recruitEndDate = driver.findElement(By.className("info_period")).findElements(By.tagName("dd")).get(1).getText();
+            System.out.println("recruitStartDate = " + recruitStartDate);
+            System.out.println("recruitEndDate = " + recruitEndDate);
+            if (recruitStartDate != "") recruitStartDate += ":00";
+            if (recruitEndDate != "") recruitEndDate += ":00";
+            LocalDateTime startDateTime = LocalDateTime.parse(recruitStartDate, DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+            LocalDateTime endDateTime = null;
+            if (recruitEndDate != "")
+                endDateTime = LocalDateTime.parse(recruitEndDate, DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+            recruitCrawledDto.setRecruitStartDate(startDateTime);
+            recruitCrawledDto.setRecruitEndDate(endDateTime);
+            String recruitTitle = driver.findElement(By.className("tit_job")).getText();
+            recruitCrawledDto.setRecruitTitle(recruitTitle);
+            System.out.println("recruitTitle = " + recruitTitle);
+        }
     }
 }

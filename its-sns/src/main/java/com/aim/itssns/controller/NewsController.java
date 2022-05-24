@@ -1,28 +1,36 @@
 package com.aim.itssns.controller;
 
 
+import com.aim.itssns.domain.dto.NewsKeywordListDto;
+import com.aim.itssns.domain.dto.NewsListDto;
 import com.aim.itssns.service.NewsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
 public class NewsController {
     private final NewsService newsService;
 
-    @GetMapping("/")
+    @GetMapping("/news_keywords")
     @ResponseStatus(HttpStatus.OK)
-    public void getTrendNewsKeywords()
+    public NewsKeywordListDto getTrendNewsKeywords(@RequestParam(required = false) String date)
     {
-
+        return newsService.findTrendNewsKeywords(date);
     }
 
-    public void getNewsList()
+    @GetMapping("/news_list")
+    @ResponseStatus(HttpStatus.OK)
+    public NewsListDto getNewsList(@RequestParam(required = false) String keyword)
     {
-
+        System.out.println(keyword);
+        return newsService.findNewsList(keyword);
     }
 }

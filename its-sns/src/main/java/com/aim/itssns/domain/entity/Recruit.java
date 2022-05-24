@@ -26,7 +26,7 @@ public class Recruit {
     private String recruitUrl;
     @Column(nullable = false)
     private LocalDateTime recruitStartDate;
-    @Column(nullable = false)
+    @Column
     private LocalDateTime recruitEndDate;
     @Column(nullable = false)
     private String recruitTitle;

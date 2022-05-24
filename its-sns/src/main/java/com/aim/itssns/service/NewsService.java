@@ -2,6 +2,8 @@ package com.aim.itssns.service;
 
 import com.aim.itssns.domain.dto.NewsCrawledDto;
 import com.aim.itssns.domain.dto.NewsKeywordDto;
+import com.aim.itssns.domain.dto.NewsKeywordListDto;
+import com.aim.itssns.domain.dto.NewsListDto;
 import com.aim.itssns.domain.entity.News;
 import com.aim.itssns.domain.entity.NewsKeyword;
 import com.aim.itssns.domain.entity.NewsKeywordR;
@@ -12,7 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +34,7 @@ public class NewsService {
     public LocalDateTime findLastNewsCrawlTime() {
         News news = newsRepository.findFirstByOrderByNewsUploadDateDesc();
         if (news == null)
-            return LocalDateTime.of(2022, 5, 23, 18, 0, 0);
+            return LocalDateTime.of(2022, 5, 24, 0, 0, 0);
 
         return news.getNewsUploadDate();
     }
@@ -65,4 +70,30 @@ public class NewsService {
         }
     }
 
+    public NewsKeywordListDto findTrendNewsKeywords(String dateStr) {
+        LocalDate date;
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        //string 형태의 날짜를 local date형식으로 변환하고, 만약 변환이 안되는 경우 오늘 날짜로 설정
+        try{
+            date=LocalDate.parse(dateStr, dateTimeFormatter);
+        }catch(Exception e)
+        {
+            date=LocalDate.now();
+        }
+        System.out.println(date);
+        return new NewsKeywordListDto();
+    }
+
+    public NewsListDto findNewsList(String keyword) {
+        if(keyword!=null)
+        {
+
+        }
+        else
+        {
+
+        }
+        return new NewsListDto();
+    }
 }

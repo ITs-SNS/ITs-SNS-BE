@@ -20,6 +20,10 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.14.3'
     annotationProcessor'org.projectlombok:lombok:1.18.22'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.1.2' //For Selenium
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+
 }
 
 tasks.named('test') {

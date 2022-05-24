@@ -1,8 +1,11 @@
 package com.aim.itssns.scheduler;
 
 import com.aim.itssns.domain.dto.NewsCrawledDto;
+import com.aim.itssns.domain.dto.NewsKeywordDto;
+import com.aim.itssns.domain.entity.NewsKeyword;
 import com.aim.itssns.service.NewsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,7 +33,7 @@ public class NewsCrawler {
     //10800000L
     //from 시간 이후에 작성된 뉴스를 크롤링해오는 메소드
     @Async
-    @Scheduled(fixedRate = 60000L, initialDelay = 0L)
+    @Scheduled(fixedRate = 180000L, initialDelay = 0L)
     public void getNewsListFromDaum() {
 
         //다음의 IT 뉴스 리스트를 받아올 수 있는 기본 주소
@@ -76,18 +79,25 @@ public class NewsCrawler {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                     LocalDateTime newsUploadDate = LocalDateTime.parse(newsUploadDateStr, formatter);
 
-                    NewsCrawledDto news = NewsCrawledDto.builder()
+
+                    //TODO: 키워드 추출 받아오기
+                    ArrayList<NewsKeywordDto> newsKeywordDtos = new ArrayList<>();
+                    newsKeywordDtos.add(NewsKeywordDto.builder().keywordContent("인공지능").build());
+                    newsKeywordDtos.add(NewsKeywordDto.builder().keywordContent("구글").build());
+                    newsKeywordDtos.add(NewsKeywordDto.builder().keywordContent("URL:"+newsUrl).build());
+
+                    NewsCrawledDto newsCrawledDto = NewsCrawledDto.builder()
                             .newsUrl(newsUrl)
+                            .newsKeywordList(newsKeywordDtos)
                             .newsUploadDate(newsUploadDate)
                             .build();
 
-                    //만약 해당 뉴스가 lastCrawlTime 같거나 이전의 뉴스이면 더이상 크롤링 할 필요가 없
+                    //만약 해당 뉴스가 lastCrawlTime 같거나 이전의 뉴스이면 더이상 크롤링 할 필요가 없음
                     if(newsUploadDate.isBefore(lastCrawlTime) || newsUploadDate.isEqual(lastCrawlTime)) {
                         crawlEndFlag = true;
                         break;
                     }
-                    newsCrawlDtoList.add(news);
-                    System.out.println(news);
+                    newsCrawlDtoList.add(newsCrawledDto);
                     //getNewsFromDaum(news);
                 }
 
@@ -119,7 +129,7 @@ public class NewsCrawler {
             newsCrawlDtoList = new LinkedList<>();
         }
 
-        newsService.saveNewsCrawledList(newsCrawlDtoList);
+        newsService.saveNewsCrawledDtoList(newsCrawlDtoList);
 
     }
 
@@ -141,8 +151,8 @@ public class NewsCrawler {
         newsCrawledDto.setNewsReporter(newsInfoElements.first().text());
 
         //news 내용 추출
-        newsCrawledDto.setNewsContent(newsElement.select("#cMain").select("#mArticle").select(".news_view")
-                .select("#harmonyContainer").select("section").select("p").text());
+       // newsCrawledDto.setNewsContent(newsElement.select("#cMain").select("#mArticle").select(".news_view")
+         //       .select("#harmonyContainer").select("section").select("p").text());
 
 
     }

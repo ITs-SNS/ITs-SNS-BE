@@ -1,10 +1,13 @@
 package com.aim.itssns.domain.dto;
 
 import com.aim.itssns.domain.entity.News;
+import com.aim.itssns.domain.entity.NewsKeyword;
 import lombok.*;
 
 import javax.persistence.Column;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,20 +16,23 @@ import java.time.LocalDateTime;
 @Setter
 @Data
 public class NewsCrawledDto {
+    Integer newsId;
     String newsTitle;
-    String newsContent;
+    String newsSummary;
     LocalDateTime newsUploadDate;
     String newsReporter;
+    List<NewsKeywordDto> newsKeywordList;
     String newsUrl;
 
 
     public News toEntity(){
+
+        //TODO: 해당 내용 채워넣기
         return News.builder()
-                .newsTitle("newsTitle")
-                .newsContent("가짜")
-                .newsSummary("가짜")
+                .newsTitle("뉴스 제목")
+                .newsSummary("뉴스 요약")
                 .newsUploadDate(newsUploadDate)
-                .newsReporter("가짜")
+                .newsReporter("뉴스 기자")
                 .newsUrl(newsUrl)
                 .build();
     }

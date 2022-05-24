@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.Column;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,19 +15,21 @@ import java.time.LocalDateTime;
 @Setter
 @Data
 public class RecruitCrawledDto {
+    Integer recruitId;
+    String recruitTitle;
     String recruitCompany;
-    String recruitUrl;
     LocalDateTime recruitStartDate;
     LocalDateTime recruitEndDate;
-    String recruitTitle;
+    List<RecruitKeywordDto> recruitKeywordList;
+    String recruitUrl;
 
     public Recruit toEntity(){
         return Recruit.builder()
-                .recruitCompany("가짜")
-                .recruitUrl(recruitUrl)
+                .recruitTitle("공고 제목")
+                .recruitCompany("회사 이름")
                 .recruitStartDate(LocalDateTime.now())
                 .recruitEndDate(LocalDateTime.now())
-                .recruitTitle("가짜")
+                .recruitUrl(recruitUrl)
                 .build();
     }
 

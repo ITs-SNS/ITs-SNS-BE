@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RecruitKeywordRepository extends JpaRepository<RecruitKeyword, Long> {
+    RecruitKeyword findByKeywordContent(String keywordContent);
+
 }

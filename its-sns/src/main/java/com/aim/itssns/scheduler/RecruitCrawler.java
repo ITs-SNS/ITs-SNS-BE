@@ -26,8 +26,8 @@ import java.util.List;
 public class RecruitCrawler {
     private final RecruitService recruitService;
 
-    @Async
-    @Scheduled(fixedRate = 60000L, initialDelay = 0L)
+    //@Async
+    //@Scheduled(fixedRate = 60000L, initialDelay = 0L)
     public void getRecruitListFromSaramin()
     {
         String recruitListUrl;

@@ -20,8 +20,6 @@ public class News {
     private Integer newsId;
     @Column(nullable = false)
     private String newsTitle;
-    @Column(length = 15000, nullable = false)
-    private String newsContent;
     @Column(nullable = false)
     private String newsSummary;
     @Column(nullable = false)

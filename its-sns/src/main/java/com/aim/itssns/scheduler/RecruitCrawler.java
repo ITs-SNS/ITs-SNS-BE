@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.scheduling.annotation.Async;
@@ -118,19 +119,27 @@ public class RecruitCrawler {
 
 
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("recruit 목록을 가져오는데 실패하였습니다.");
             recruitCrawlDtoList = new LinkedList<>();
         }
         System.out.println("Scheduled recruit Crawler End");
         System.out.println(recruitCrawlDtoList.size());
         recruitService.saveRecruitCrawledDtoList(recruitCrawlDtoList);
+        recruitService.saveRecruitTrend(crawlDate);
         driver.close();	//탭 닫기
         driver.quit();	//브라우저 닫기
     }
     public RecruitCrawledDto getRecruitFromSaramin(RecruitCrawledDto recruitCrawledDto) throws IOException, InterruptedException {
+
         String recruitUrl = recruitCrawledDto.getRecruitUrl();
         System.out.println("recruitUrl = " + recruitUrl);
-        driver.get(recruitUrl);
+        try {
+            driver.get(recruitUrl);
+        }catch(WebDriverException e)
+        {
+            return recruitCrawledDto;
+        }
         Thread.sleep(1000);
         String recruitStartDate=null;
         String recruitEndDate=null;

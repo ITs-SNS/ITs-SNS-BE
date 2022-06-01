@@ -1,17 +1,18 @@
 package com.aim.itssns.scheduler;
 
 import com.aim.itssns.domain.URLInfo;
-import com.aim.itssns.domain.dto.NewsCrawledDto;
 import com.aim.itssns.domain.dto.RecruitCrawledDto;
-import com.aim.itssns.service.NewsService;
+import com.aim.itssns.domain.dto.RecruitKeywordDto;
 import com.aim.itssns.service.RecruitService;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.dynamic.scaffold.MethodGraph;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,33 +22,30 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class RecruitCrawler {
     private final RecruitService recruitService;
     private WebDriver driver;
-   // @Async
-   // @Scheduled(fixedRate = 180000L, initialDelay = 0L)
+    @Async
+    @Scheduled(fixedRate = 180L*60000L, initialDelay = 0L)
     public void getRecruitListFromSaramin()
     {
-        System.setProperty("webdriver.chrome.driver", "/Users/dugunhee/ITs-SNS-BE/chromedriver");
+        System.setProperty("webdriver.chrome.driver", URLInfo.chromeDriverPath);
         //크롬 드라이버 셋팅 (드라이버 설치한 경로 입력)
         driver = new ChromeDriver();
         String recruitListUrl;
         String recruitListUrlQuery;
-        //마지막에 크롤링한 recruit url
         String lastCrawlUrl;
-        //크롤링해서 받아온 뉴스 데이터들을 저장
         LinkedList<RecruitCrawledDto> recruitCrawlDtoList = new LinkedList<>();
-        //crawling 하는 daum 뉴스 상의 page번호
         Long crawlPage;
-        //crawling 하는 daum 뉴스 상의 날짜
         LocalDate crawlDate;
-        //crawling이 끝날 조건을 만족하는지의 여부를 저장하고 있는 end flag
         boolean crawlEndFlag;
 
 
@@ -78,14 +76,13 @@ public class RecruitCrawler {
                     RecruitCrawledDto recruit = RecruitCrawledDto.builder()
                             .recruitUrl(recruitUrl)
                             .build();
-
                     if(recruitUrl.equals(lastCrawlUrl)) {
                         crawlEndFlag = true;
                         break;
                     }
-                    recruitCrawlDtoList.addFirst(recruit);
+//                    recruitCrawlDtoList.addFirst(recruit);
                     //System.out.println(recruitUrl);
-                    getRecruitFromSaramin(recruit);
+                    recruitCrawlDtoList.addFirst(recruit);
                 }
                 if(crawlEndFlag)
                     break;
@@ -109,34 +106,49 @@ public class RecruitCrawler {
                 }
                 System.out.println(crawlPage);
                 crawlPage++;
-                if(crawlPage == 30) break;
+                if(lastCrawlUrl.equals("") && crawlPage==3)
+                    break;
             }
+            for(RecruitCrawledDto recruitCrawledDto :recruitCrawlDtoList)
+                getRecruitFromSaramin(recruitCrawledDto);
+            //recruit_end_date이 null인 것들은 날려줌
+            recruitCrawlDtoList = recruitCrawlDtoList.stream().filter(recruitCrawledDto ->
+                    recruitCrawledDto.getRecruitEndDate() != null && recruitCrawledDto.getRecruitStartDate() != null).collect(Collectors.toCollection(LinkedList::new));
+
+
         } catch (IOException | InterruptedException e) {
             System.out.println("recruit 목록을 가져오는데 실패하였습니다.");
             recruitCrawlDtoList = new LinkedList<>();
         }
+        System.out.println("Scheduled recruit Crawler End");
         System.out.println(recruitCrawlDtoList.size());
-        recruitService.saveRecruitCrawledList(recruitCrawlDtoList);
+        recruitService.saveRecruitCrawledDtoList(recruitCrawlDtoList);
         driver.close();	//탭 닫기
         driver.quit();	//브라우저 닫기
     }
-    public void getRecruitFromSaramin(RecruitCrawledDto recruitCrawledDto) throws IOException, InterruptedException {
+    public RecruitCrawledDto getRecruitFromSaramin(RecruitCrawledDto recruitCrawledDto) throws IOException, InterruptedException {
         String recruitUrl = recruitCrawledDto.getRecruitUrl();
         System.out.println("recruitUrl = " + recruitUrl);
         driver.get(recruitUrl);
         Thread.sleep(1000);
-
-        recruitCrawledDto.setRecruitCompany(driver.findElement(By.className("company")).getText());
-        System.out.println(recruitCrawledDto.getRecruitCompany());
         String recruitStartDate=null;
         String recruitEndDate=null;
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime = null;
+        String companyName=null;
+        List<RecruitKeywordDto> keywordList = new ArrayList<>();
+        String recruitTitle = null;
         Boolean noElementFlag = false;
         try {
+            companyName = driver.findElement(By.className("company")).getText();
+            recruitCrawledDto.setRecruitCompany(companyName);
+            System.out.println(recruitCrawledDto.getRecruitCompany());
             recruitStartDate = driver.findElement(By.className("info_period")).findElements(By.tagName("dd")).get(0).getText();
         }catch(Exception e) {
             recruitStartDate = null;
             noElementFlag = true;
             System.out.println("해당공고는 [공고 사전 확인 서비스] 진행 중입니다.");
+            recruitCrawledDto.setRecruitCompany(null);
             recruitCrawledDto.setRecruitStartDate(null);
             recruitCrawledDto.setRecruitEndDate(null);
             recruitCrawledDto.setRecruitTitle("해당공고는 [공고 사전 확인 서비스] 진행 중입니다.");
@@ -150,15 +162,31 @@ public class RecruitCrawler {
             System.out.println("recruitEndDate = " + recruitEndDate);
             if (recruitStartDate != "") recruitStartDate += ":00";
             if (recruitEndDate != "") recruitEndDate += ":00";
-            LocalDateTime startDateTime = LocalDateTime.parse(recruitStartDate, DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-            LocalDateTime endDateTime = null;
+            startDateTime = LocalDateTime.parse(recruitStartDate, DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
             if (recruitEndDate != "")
                 endDateTime = LocalDateTime.parse(recruitEndDate, DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
             recruitCrawledDto.setRecruitStartDate(startDateTime);
             recruitCrawledDto.setRecruitEndDate(endDateTime);
-            String recruitTitle = driver.findElement(By.className("tit_job")).getText();
+            recruitTitle = driver.findElement(By.className("tit_job")).getText();
             recruitCrawledDto.setRecruitTitle(recruitTitle);
             System.out.println("recruitTitle = " + recruitTitle);
+            List<WebElement> webElementList = driver.findElement(By.className("scroll")).findElements(By.tagName("li"));
+
+
+            Integer i = 0;
+            for (WebElement webElement : webElementList){
+                String keywordName = webElement.getText();//.substring(1);
+                if(keywordName.equals("")) break;
+                keywordName = keywordName.substring(1);
+                System.out.println("keywordName = " + keywordName);
+                RecruitKeywordDto recruitKeywordDto = new RecruitKeywordDto();
+                recruitKeywordDto.setKeywordContent(keywordName);
+                keywordList.add(i, recruitKeywordDto);
+                i++;
+            }
+
         }
+        recruitCrawledDto.setRecruitKeywordList(keywordList);
+        return recruitCrawledDto;
     }
 }

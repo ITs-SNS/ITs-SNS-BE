@@ -25,16 +25,26 @@ public class NewsCrawledDto {
     String newsUrl;
 
 
-    public News toEntity(){
+    public News toEntity() {
 
-        //TODO: 해당 내용 채워넣기
         return News.builder()
-                .newsTitle("뉴스 제목")
-                .newsSummary("뉴스 요약")
+                .newsTitle(newsTitle)
+                .newsSummary(newsSummary)
                 .newsUploadDate(newsUploadDate)
-                .newsReporter("뉴스 기자")
+                .newsReporter(newsReporter)
                 .newsUrl(newsUrl)
                 .build();
     }
 
+    public String mailContent() {
+        String str = "뉴스 제목 : " + newsTitle + "\n";
+        str += "요약 : " + newsSummary + "\n";
+        str += "키워드 : ";
+        for (NewsKeywordDto newsKeywordDto : newsKeywordList)
+            str += "#" + newsKeywordDto.getKeywordContent() + " ";
+        str += "\n";
+        str += "업로드 날짜 : " + newsUploadDate.toString()+"\n";
+        str += "URL : " + newsUrl + "\n\n";
+        return str;
+    }
 }

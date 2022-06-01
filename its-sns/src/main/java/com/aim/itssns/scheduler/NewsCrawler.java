@@ -1,36 +1,29 @@
 package com.aim.itssns.scheduler;
 
 import com.aim.itssns.domain.URLInfo;
-import com.aim.itssns.domain.dto.KeywordExtractionDto;
 import com.aim.itssns.domain.dto.NewsCrawledDto;
+import com.aim.itssns.domain.dto.NewsKeywordDto;
 import com.aim.itssns.service.NewsService;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.buf.Utf8Decoder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.net.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -41,22 +34,23 @@ public class NewsCrawler {
 
     //10800000L
     //from 시간 이후에 작성된 뉴스를 크롤링해오는 메소드
-    @Async
-    @Scheduled(fixedRate = 180000L, initialDelay = 0L)
+    //@Async
+    //@Scheduled(fixedRate = 10800000L, initialDelay = 0L)
     public void getNewsListFromDaum() {
-
         //다음의 IT 뉴스 리스트를 받아올 수 있는 기본 주소
         String newsListUrl;
         //DB상에서의 가장 최신 뉴스의 업로드 시간
         LocalDateTime lastCrawlTime;
         //크롤링해서 받아온 뉴스 데이터들을 저장
-        LinkedList<NewsCrawledDto> newsCrawlDtoList = new LinkedList<>();
+        List<NewsCrawledDto> newsCrawlDtoList = new LinkedList<>();
         //crawling 하는 daum 뉴스 상의 page번호
         Long crawlPage;
         //crawling 하는 daum 뉴스 상의 날짜
         LocalDate crawlDate;
         //crawling이 끝날 조건을 만족하는지의 여부를 저장하고 있는 end flag
         boolean crawlEndFlag;
+        //크롤링을 수행하는 날짜
+        LocalDate today = LocalDate.now();
 
         //iniatialization
         lastCrawlTime = newsService.findLastNewsCrawlTime();
@@ -64,8 +58,20 @@ public class NewsCrawler {
         crawlDate = LocalDate.now();
         crawlEndFlag = false;
 
+        //소켓통신을 위한 자료
+        Socket keywordSocket = null;
+        //키워드 서버로부터 읽어오기 위한 리더
+        BufferedReader keywordReader = null;
+        //키워드 서버에 데이터를 보내기 위한 writer
+        PrintStream keywordWriter = null;
 
         try {
+            keywordSocket = new Socket(URLInfo.keywordExtractionServer, URLInfo.keywordExtractionPort);
+            //키워드 서버로부터 읽어오기 위한 리더
+            keywordReader = new BufferedReader(new InputStreamReader(keywordSocket.getInputStream(), "utf8"));
+            //키워드 서버에 데이터를 보내기 위한 writer
+            keywordWriter = new PrintStream(keywordSocket.getOutputStream());
+
             while (true) {
                 //crawlPage에 해당하는 뉴스들의 주소, 업로드 시간을 추출
                 String crawlDateStr = crawlDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -98,10 +104,6 @@ public class NewsCrawler {
                     }
 
                     newsCrawlDtoList.add(newsCrawledDto);
-
-                    //TODO: 나중에 thread로 처리하기
-                    //실제 뉴스 정보(키워드, 요약 등)를 가져옴
-                    getNewsDetail(newsCrawledDto);
                 }
 
                 if (crawlEndFlag)
@@ -113,7 +115,7 @@ public class NewsCrawler {
                         .select("#kakaoContent").select("#cMain")
                         .select("#mArticle").select(".box_etc").select(".paging_news").select(".inner_paging").text().replace("현재 페이지", "");
 
-                List<String> pageList = Arrays.asList(pagesStr.split(" ").clone());
+                List<String> pageList = Arrays.asList(pagesStr.strip().split(" ").clone());
 
                 //얻어온 페이지 번호 정보 중 가장 마지막 페이지 정보만 추출
                 String lastPage = pageList.get(pageList.size() - 1);
@@ -126,17 +128,37 @@ public class NewsCrawler {
 
                 crawlPage++;
             }
+
+            //뉴스 요약 정보 및 키워드 정보를 읽어옴
+            for (NewsCrawledDto newsCrawledDto : newsCrawlDtoList) {
+                //실제 뉴스 정보(키워드, 요약 등)를 가져옴
+                getNewsDetail(newsCrawledDto, keywordReader, keywordWriter);
+            }
+            newsCrawlDtoList = newsCrawlDtoList.stream().filter(newsCrawledDto -> newsCrawledDto.getNewsKeywordList() != null).collect(Collectors.toList());
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("news목록을 가져오는데 실패하였습니다.");
             newsCrawlDtoList = new LinkedList<>();
-        }
-        System.out.println("끝");
-        //newsService.saveNewsCrawledDtoList(newsCrawlDtoList);
+        } finally {
+            try {
+                keywordReader.close();
+                keywordWriter.close();
+                keywordSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
+        }
+
+        newsService.saveNewsCrawledDtoList(newsCrawlDtoList);
+
+        newsService.saveNewsTrends(today);
     }
 
 
-    public void getNewsDetail(NewsCrawledDto newsCrawledDto) throws IOException {
+    public void getNewsDetail(NewsCrawledDto newsCrawledDto,
+                              BufferedReader keywordReader,
+                              PrintStream keywordWriter) throws IOException {
 
         Document doc = Jsoup.connect(newsCrawledDto.getNewsUrl()).get();
         Element newsElement = doc.select("#kakaoContent").first();
@@ -148,18 +170,33 @@ public class NewsCrawler {
         //news 작성 기자 추출
         newsCrawledDto.setNewsReporter(newsInfoElements.first().text());
         //news 내용을 keywordExtractionDto로 추출
-        KeywordExtractionDto newscontentDto = KeywordExtractionDto.builder().content(newsElement.select("#cMain").select("#mArticle")
-                .select(".news_view").select("#harmonyContainer").select("section").select("p").text()).build();
+        String newsContent = newsElement.select("#cMain").select("#mArticle")
+                .select(".news_view").select("#harmonyContainer").select("section").select("p").text();
+        if(newsContent.length() > 200 && newsContent.length()<50000 && newsContent.contains(".")) {
+            System.out.println("뉴스 컨텐츠: " + newsContent);
+            //키워드 서버에 뉴스 내용 보냄
+            keywordWriter.print(newsContent+"\n");
+            //키워드 서버로부터 키워드 추출 결과를 받아옴
+            String keywordsStr = keywordReader.readLine();
 
-        System.out.println(newscontentDto);
+            //받아온 결과를 KeywordDtoList로 바꾸고
+            List<NewsKeywordDto> newsKeywordList = Arrays.asList(keywordsStr.split(" ")).stream().map(
+                    keywordContent->NewsKeywordDto.builder().keywordContent(keywordContent).build()).collect(Collectors.toList());
+            System.out.println(newsKeywordList);
+            //이를 newsCrawledDto에 내용 추가
+            newsCrawledDto.setNewsKeywordList(newsKeywordList);
+            //TODO: 뉴스 요약정보 추가
+            newsCrawledDto.setNewsSummary("뉴스 요약");
+        }
+
         //뉴스 내용을 이용하여 키워드 추출
-        KeywordExtractionDto keywordExtractionDto = webClient.post()
-                .uri("/keywords")
+        /*KeywordExtractionDto keywordExtractionDto = webClient.post()
+                .uri(URLInfo.keywordExtractionUrl)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(newscontentDto)
+                .bodyValue(newsContentDto)
                 .retrieve()
                 .bodyToMono(KeywordExtractionDto.class)
-                .block();
-        System.out.println(keywordExtractionDto);
+                .block();*/
+        //System.out.println(keywordExtractionDto);
     }
 }

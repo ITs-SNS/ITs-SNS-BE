@@ -23,6 +23,11 @@ dependencies {
     implementation 'org.seleniumhq.selenium:selenium-java:4.1.2' //For Selenium
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.12'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+
 
 }
 

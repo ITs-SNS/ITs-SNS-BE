@@ -1,11 +1,13 @@
 package com.aim.itssns.controller;
 
-
-import com.aim.itssns.domain.dto.NewsKeywordListDto;
 import com.aim.itssns.domain.dto.NewsListDto;
+import com.aim.itssns.domain.dto.NewsTrendDto;
 import com.aim.itssns.service.NewsService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,16 +23,15 @@ public class NewsController {
 
     @GetMapping("/news_keywords")
     @ResponseStatus(HttpStatus.OK)
-    public NewsKeywordListDto getTrendNewsKeywords(@RequestParam(required = false) String date)
+    public NewsTrendDto getTrendNewsKeywords(@RequestParam(required = false) String date)
     {
         return newsService.findTrendNewsKeywords(date);
     }
 
     @GetMapping("/news_list")
     @ResponseStatus(HttpStatus.OK)
-    public NewsListDto getNewsList(@RequestParam(required = false) String keyword)
+    public NewsListDto getNewsList(@RequestParam(required = false) String keyword, Pageable pageable)
     {
-        System.out.println(keyword);
-        return newsService.findNewsList(keyword);
+        return newsService.findNewsList(keyword, pageable);
     }
 }

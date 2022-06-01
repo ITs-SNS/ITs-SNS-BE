@@ -25,12 +25,24 @@ public class RecruitCrawledDto {
 
     public Recruit toEntity(){
         return Recruit.builder()
-                .recruitTitle("공고 제목")
-                .recruitCompany("회사 이름")
-                .recruitStartDate(LocalDateTime.now())
-                .recruitEndDate(LocalDateTime.now())
+                .recruitTitle(recruitTitle)
+                .recruitCompany(recruitCompany)
+                .recruitStartDate(recruitStartDate)
+                .recruitEndDate(recruitEndDate)
                 .recruitUrl(recruitUrl)
                 .build();
     }
 
+    public String mailContent() {
+        String str = "채용공고 제목 : " + recruitTitle + "\n";
+        str += "회사명 : "+recruitCompany + "\n";
+        str += "키워드 : ";
+        for(RecruitKeywordDto recruitKeywordDto: recruitKeywordList)
+            str += "#"+ recruitKeywordDto.getKeywordContent()+" ";
+        str+="\n";
+        str += "시작 날짜 : " + recruitStartDate.toString()+"\n";
+        str += "종료 날짜 : " + recruitEndDate.toString()+"\n";
+        str += "URL : " + recruitUrl +"\n\n";
+        return str;
+    }
 }

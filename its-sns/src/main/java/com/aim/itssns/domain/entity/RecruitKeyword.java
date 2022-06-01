@@ -1,5 +1,7 @@
 package com.aim.itssns.domain.entity;
 
+import com.aim.itssns.domain.dto.NewsKeywordDto;
+import com.aim.itssns.domain.dto.RecruitKeywordDto;
 import lombok.*;
 
 import javax.persistence.*;
@@ -23,6 +25,10 @@ public class RecruitKeyword {
     @OneToMany(mappedBy = "recruitKeyword")
     private List<RecruitKeywordR> recruitKeywordList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "recruitKeyword")
-    private List<UserRecruitKeywordR> userRecruitKeywordList = new ArrayList<>();
+    public RecruitKeywordDto toDto() {
+        return RecruitKeywordDto.builder()
+                .keywordId(keywordId)
+                .keywordContent(keywordContent)
+                .build();
+    }
 }

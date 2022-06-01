@@ -5,6 +5,7 @@ import com.aim.itssns.domain.entity.Recruit;
 import lombok.*;
 
 import javax.persistence.Column;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class RecruitCrawledDto {
     String recruitCompany;
     LocalDateTime recruitStartDate;
     LocalDateTime recruitEndDate;
+    LocalDate recruitCrawlDate;
     List<RecruitKeywordDto> recruitKeywordList;
     String recruitUrl;
 
@@ -29,6 +31,7 @@ public class RecruitCrawledDto {
                 .recruitCompany(recruitCompany)
                 .recruitStartDate(recruitStartDate)
                 .recruitEndDate(recruitEndDate)
+                .recruitCrawlDate(recruitCrawlDate)
                 .recruitUrl(recruitUrl)
                 .build();
     }

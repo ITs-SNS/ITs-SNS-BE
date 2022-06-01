@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequiredArgsConstructor
 public class UserKeywordController {
@@ -26,6 +28,6 @@ public class UserKeywordController {
     @ResponseStatus(HttpStatus.OK)
     public void sendMail()
     {
-        userKeywordService.sendUsersAboutKeywords();
+        userKeywordService.sendUsersAboutKeywords(LocalDate.now());
     }
 }

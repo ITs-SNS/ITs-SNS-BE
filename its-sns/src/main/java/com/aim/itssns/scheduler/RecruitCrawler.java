@@ -37,9 +37,6 @@ public class RecruitCrawler {
     @Scheduled(fixedRate = 180L*60000L, initialDelay = 0L)
     public void getRecruitListFromSaramin()
     {
-        System.setProperty("webdriver.chrome.driver", URLInfo.chromeDriverPath);
-        //크롬 드라이버 셋팅 (드라이버 설치한 경로 입력)
-        driver = new ChromeDriver();
         String recruitListUrl;
         String recruitListUrlQuery;
         String lastCrawlUrl;
@@ -48,7 +45,6 @@ public class RecruitCrawler {
         LocalDate crawlDate;
         boolean crawlEndFlag;
 
-
         //iniatialization
         lastCrawlUrl = recruitService.findLastRecruitUrl();
 
@@ -56,6 +52,10 @@ public class RecruitCrawler {
         crawlDate = LocalDate.now();
         crawlEndFlag=false;
         try {
+            System.setProperty("webdriver.chrome.driver", URLInfo.chromeDriverPath);
+            //크롬 드라이버 셋팅 (드라이버 설치한 경로 입력)
+            driver = new ChromeDriver();
+
             while(true) {
                 //crawlPage에 해당하는 뉴스들의 주소, 업로드 시간을 추출
                 String crawlDateStr = crawlDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -75,6 +75,7 @@ public class RecruitCrawler {
 
                     RecruitCrawledDto recruit = RecruitCrawledDto.builder()
                             .recruitUrl(recruitUrl)
+                            .recruitCrawlDate(crawlDate)
                             .build();
                     if(recruitUrl.equals(lastCrawlUrl)) {
                         crawlEndFlag = true;
@@ -106,7 +107,7 @@ public class RecruitCrawler {
                 }
                 System.out.println(crawlPage);
                 crawlPage++;
-                if(lastCrawlUrl.equals("") && crawlPage==3)
+                if(lastCrawlUrl.equals("") && crawlPage==7)
                     break;
             }
             for(RecruitCrawledDto recruitCrawledDto :recruitCrawlDtoList)
@@ -116,7 +117,7 @@ public class RecruitCrawler {
                     recruitCrawledDto.getRecruitEndDate() != null && recruitCrawledDto.getRecruitStartDate() != null).collect(Collectors.toCollection(LinkedList::new));
 
 
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             System.out.println("recruit 목록을 가져오는데 실패하였습니다.");
             recruitCrawlDtoList = new LinkedList<>();
         }

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @RestController
 @RequiredArgsConstructor
 public class RecruitController {
@@ -27,5 +29,13 @@ public class RecruitController {
     public RecruitListDto getRecruitList(@RequestParam(required = false) String keyword, Pageable pageable)
     {
         return recruitService.findRecruitList(keyword, pageable);
+    }
+
+
+    @GetMapping("/recruit_trend")
+    @ResponseStatus(HttpStatus.OK)
+    public RecruitTrendDto getTrend()
+    {
+        return recruitService.saveRecruitTrend(LocalDate.now());
     }
 }

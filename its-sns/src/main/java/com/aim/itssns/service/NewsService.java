@@ -106,13 +106,13 @@ public class NewsService {
         //전체 뉴스 반환
         if(keyword==null)
         {
-            pageable = PageRequest.of(Math.max(pageable.getPageNumber() - 1, 0), 20, Sort.by("newsUploadDate").descending());
+            pageable = PageRequest.of(pageable.getPageNumber(), 20, Sort.by("newsUploadDate").descending());
             newsList = newsRepository.findAll(pageable).toList();
         }
         //keyword에 해당하는 뉴스 반환
         else
         {
-            pageable = PageRequest.of(Math.max(pageable.getPageNumber() - 1, 0), 20, Sort.by("newsNewsUploadDate").descending());
+            pageable = PageRequest.of(pageable.getPageNumber(), 20, Sort.by("newsNewsUploadDate").descending());
             NewsKeyword newsKeyword = newsKeywordRepository.findByKeywordContent(keyword);
             List<NewsKeywordR> newsKeywordRList= newsKeywordRRepository.findAllByNewsKeyword(newsKeyword, pageable);
             newsList = newsKeywordRList.stream().map(NewsKeywordR::getNews).collect(Collectors.toList());

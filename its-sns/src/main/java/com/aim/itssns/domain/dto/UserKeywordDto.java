@@ -15,7 +15,6 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class UserKeywordDto {
 
     private Integer userKeywordId;

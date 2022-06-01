@@ -93,13 +93,13 @@ public class RecruitService {
         //전체 recruit 반환
         if(keyword==null)
         {
-            pageable = PageRequest.of(Math.max(pageable.getPageNumber() - 1, 0), 40, Sort.by("recruitEndDate").descending());
+            pageable = PageRequest.of(pageable.getPageNumber(), 40, Sort.by("recruitEndDate").descending());
             recruitList = recruitRepository.findAll(pageable).toList();
         }
         //keyword에 해당하는 recruit 반환
         else
         {
-            pageable = PageRequest.of(Math.max(pageable.getPageNumber() - 1, 0), 40, Sort.by("recruitRecruitEndDate").descending());
+            pageable = PageRequest.of(pageable.getPageNumber(), 40, Sort.by("recruitRecruitEndDate").descending());
             RecruitKeyword recruitKeyword = recruitKeywordRepository.findByKeywordContent(keyword);
             List<RecruitKeywordR> recruitKeywordRList= recruitKeywordRRepository.findAllByRecruitKeyword(recruitKeyword, pageable);
             recruitList = recruitKeywordRList.stream().map(RecruitKeywordR::getRecruit).collect(Collectors.toList());
@@ -155,6 +155,7 @@ public class RecruitService {
         RecruitTrend existTrend = recruitTrendRepository.findByTrendDate(localDate);
         if(existTrend!= null)
             recruitTrendRepository.delete(existTrend);
+
         recruitTrendRepository.save(recruitTrendDto.toEntity());
 
         return recruitTrendDto;

@@ -9,6 +9,7 @@ import com.sun.istack.NotNull;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +32,10 @@ public class Recruit {
     private String recruitUrl;
     @Column(nullable = false)
     private LocalDateTime recruitStartDate;
-    @Column
+    @Column(nullable = false)
     private LocalDateTime recruitEndDate;
+    @Column(nullable = false)
+    private LocalDate recruitCrawlDate;
     @Column(nullable = false)
     private String recruitTitle;
 
@@ -50,6 +53,7 @@ public class Recruit {
                 .recruitCompany(recruitCompany)
                 .recruitStartDate(recruitStartDate)
                 .recruitEndDate(recruitEndDate)
+                .recruitCrawlDate(recruitCrawlDate)
                 .recruitKeywordList(recruitKeywordDtoList)
                 .recruitUrl(recruitUrl)
                 .build();
